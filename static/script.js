@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     let inputField = document.getElementById("user-input");
-    
+
     inputField.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
             sendMessage();
@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function sendMessage(customMessage = null) {
     let inputField = document.getElementById("user-input");
     let userMessage = customMessage || inputField.value.trim();
-    
+
     if (!userMessage) return;
 
     // Display user message in chatbox
@@ -23,7 +23,7 @@ function sendMessage(customMessage = null) {
     // Show loading indicator
     addMessage("Bot", "Thinking...");
 
-    // Send message to backend
+    // Send message to FastAPI backend
     fetch("/chat", {
         method: "POST",
         headers: {
@@ -31,11 +31,16 @@ function sendMessage(customMessage = null) {
         },
         body: JSON.stringify({ message: userMessage })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+        return response.json();
+    })
     .then(data => {
         // Remove "Thinking..." message and show AI response
         removeLastMessage();
-        addMessage("Bot", data.reply);
+        addMessage("Bot", data.reply);  // Updated to match our FastAPI response format
     })
     .catch(error => {
         console.error("Error:", error);
@@ -61,4 +66,9 @@ function removeLastMessage() {
     if (lastMessage) {
         chatbox.removeChild(lastMessage);
     }
+}
+
+// Function to show all reminders
+function showReminders() {
+    sendMessage("show reminders");
 }
