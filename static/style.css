@@ -9,15 +9,134 @@ body {
     min-height: 100vh;
 }
 
-.chat-container {
-    width: 90%;
-    max-width: 600px;
+.app-container {
+    display: flex;
+    width: 100%;
+    max-width: 1200px;
+    height: 90vh;
     background: white;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #e9ecef;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chat-container {
+    flex: 1;
+    width: 100%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.reminders-container {
+    height: 300px;
+    border-top: 1px solid #e9ecef;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.reminders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#reminders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.reminder-item {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fff;
+}
+
+.reminder-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.reminder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.reminder-date {
+    font-weight: bold;
+    color: #4a6fa5;
+}
+
+.reminder-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.reminder-message {
+    margin: 5px 0;
+}
+
+.priority-high {
+    border-left: 4px solid #dc3545;
+}
+
+.priority-medium, .priority-normal {
+    border-left: 4px solid #ffc107;
+}
+
+.priority-low {
+    border-left: 4px solid #28a745;
+}
+
+.completed {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+.complete-btn, .delete-btn {
+    padding: 5px;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.complete-btn {
+    background-color: #28a745;
+}
+
+.delete-btn {
+    background-color: #dc3545;
 }
 
 h1 {
@@ -101,4 +220,79 @@ button:hover {
 
 .action-buttons button:hover {
     background: #5a6268;
+}
+
+/* Chat Mode Toggle */
+.chat-mode-toggle {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+}
+
+#chat-mode-label {
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }

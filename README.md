@@ -1,66 +1,52 @@
-# AI Reminder Assistant with Function Calling
+# Advanced AI Reminder Assistant
 
-A FastAPI application that uses Google's Gemini AI with function calling capabilities to provide a chat interface with reminder functionality.
+A powerful AI assistant that helps you manage reminders and now supports general chat functionality.
 
 ## Features
 
-- Chat with Google's Gemini AI model
-- Set reminders using natural language
-- View all reminders
-- Uses Gemini's function calling to intelligently handle reminder operations
-- Modern, responsive UI
+### Reminder Management
+- Create reminders with natural language
+- Set dates, priorities, and tags
+- View, complete, and delete reminders
+- Filter reminders by date and completion status
 
-## How Function Calling Works
+### General Chat
+- Toggle between reminder mode and general chat mode
+- Ask questions on any topic in general chat mode
+- Get informative responses powered by Google's Gemini AI
+- Maintain separate conversation histories for each mode
 
-This application uses Gemini's function calling capabilities to:
+## How to Use
 
-1. Define tools (functions) that the AI can use
-2. Let the AI decide when to call these functions based on user intent
-3. Execute the appropriate function when the AI determines it's needed
-4. Return the function's result to the user
+1. **Reminder Mode (Default)**
+   - Create reminders: "Remind me to call mom tomorrow"
+   - List reminders: "Show me all my reminders"
+   - Complete reminders: "Mark reminder #3 as done"
+   - Delete reminders: "Delete reminder #2"
 
-This approach is more flexible than keyword matching because:
-- The AI understands user intent more naturally
-- Users can phrase their requests in many different ways
-- The AI extracts the necessary parameters from natural language
+2. **General Chat Mode**
+   - Toggle to general chat mode using the switch in the header
+   - Ask any question: "What's the capital of France?"
+   - Have casual conversations: "Tell me a joke"
+   - Get information: "How does photosynthesis work?"
 
-## Requirements
+## Technical Details
 
-- Python 3.8+
-- FastAPI
-- Google Generative AI Python SDK
-- SQLite3
-- Uvicorn (ASGI server)
+The application uses:
+- FastAPI for the backend
+- Google's Gemini AI for natural language processing
+- SQLite for data storage
+- Function calling for structured reminder operations
+- Separate endpoints for reminder and general chat functionality
 
-## Installation
+## Setup and Installation
 
-1. Clone this repository:
-```bash
-git clone <repository-url>
-cd ai-reminder-assistant
-```
+1. Clone the repository
+2. Install dependencies: `pip install -r requirements.txt`
+3. Set your Gemini API key as an environment variable: `export GEMINI_API_KEY=your_api_key`
+4. Run the application: `python app.py`
+5. Access the web interface at `http://localhost:8000`
 
-2. Create a virtual environment and activate it:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+## License
 
-3. Install the required packages:
-```bash
-pip install -r requirements.txt
-```
-
-4. Set up your Google Gemini API key:
-   - Get an API key from [Google AI Studio](https://makersuite.google.com/)
-   - Replace the placeholder API key in `app.py` with your actual key
-
-## Running the Application
-
-1. Start the FastAPI server:
-```bash
-uvicorn app:app --reload
-```
-
-2. Open your browser and navigate to:
-```
+MIT License

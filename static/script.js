@@ -1,6 +1,7 @@
 // Global variables
 let currentConversationId = null;
 let reminders = [];
+let isGeneralChatMode = false;
 
 // Initialize the application
 document.addEventListener("DOMContentLoaded", function() {
@@ -26,6 +27,11 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById("new-chat-btn").addEventListener("click", startNewChat);
     }
     
+    // Chat mode toggle
+    if (document.getElementById("chat-mode-toggle")) {
+        document.getElementById("chat-mode-toggle").addEventListener("change", toggleChatMode);
+    }
+    
     // Load initial data
     if (typeof loadUpcomingReminders === 'function') {
         loadUpcomingReminders();
@@ -43,20 +49,80 @@ document.addEventListener("DOMContentLoaded", function() {
     startNewChat();
 });
 
+// Toggle between reminder mode and general chat mode
+function toggleChatMode() {
+    isGeneralChatMode = document.getElementById("chat-mode-toggle").checked;
+    const modeLabel = document.getElementById("chat-mode-label");
+    
+    if (isGeneralChatMode) {
+        modeLabel.textContent = "General Chat Mode";
+        document.getElementById("chatbox").innerHTML = `
+            <div class="message bot">
+                <strong>Assistant:</strong> You're now in general chat mode. I can help with a wide range of topics, answer questions, or just chat. What would you like to talk about?
+            </div>
+        `;
+    } else {
+        modeLabel.textContent = "Reminder Mode";
+        document.getElementById("chatbox").innerHTML = `
+            <div class="message bot">
+                <strong>Assistant:</strong> You're now in reminder mode. I can help you manage reminders and tasks. Try saying:
+                <ul>
+                    <li>"Remind me to call mom tomorrow"</li>
+                    <li>"I need to submit my report by Friday"</li>
+                    <li>"Show me all my reminders"</li>
+                    <li>"What do I have scheduled for today?"</li>
+                </ul>
+            </div>
+        `;
+        
+        // Reload reminders when switching to reminder mode
+        if (typeof loadReminders === 'function') {
+            loadReminders();
+        }
+        
+        if (typeof loadUpcomingReminders === 'function') {
+            loadUpcomingReminders();
+        }
+    }
+    
+    // Reset conversation ID when switching modes
+    currentConversationId = null;
+    document.getElementById("user-input").focus();
+}
+
 // Chat functions
 function startNewChat() {
     currentConversationId = null;
-    document.getElementById("chatbox").innerHTML = `
-        <div class="message bot">
-            <strong>Assistant:</strong> Hello! I'm your advanced AI assistant. I can help you manage reminders and tasks. Try saying:
-            <ul>
-                <li>"Remind me to call mom tomorrow"</li>
-                <li>"I need to submit my report by Friday"</li>
-                <li>"Show me all my reminders"</li>
-                <li>"What do I have scheduled for today?"</li>
-            </ul>
-        </div>
-    `;
+    
+    if (isGeneralChatMode) {
+        document.getElementById("chatbox").innerHTML = `
+            <div class="message bot">
+                <strong>Assistant:</strong> You're in general chat mode. I can help with a wide range of topics, answer questions, or just chat. What would you like to talk about?
+            </div>
+        `;
+    } else {
+        document.getElementById("chatbox").innerHTML = `
+            <div class="message bot">
+                <strong>Assistant:</strong> Hello! I'm your advanced AI assistant. I can help you manage reminders and tasks. Try saying:
+                <ul>
+                    <li>"Remind me to call mom tomorrow"</li>
+                    <li>"I need to submit my report by Friday"</li>
+                    <li>"Show me all my reminders"</li>
+                    <li>"What do I have scheduled for today?"</li>
+                </ul>
+            </div>
+        `;
+        
+        // Reload reminders when in reminder mode
+        if (typeof loadReminders === 'function') {
+            loadReminders();
+        }
+        
+        if (typeof loadUpcomingReminders === 'function') {
+            loadUpcomingReminders();
+        }
+    }
+    
     document.getElementById("user-input").focus();
 }
 
@@ -76,8 +142,11 @@ async function sendMessage() {
     const loadingId = addMessage("Assistant", "Thinking...");
     
     try {
+        // Determine which endpoint to use based on chat mode
+        const endpoint = isGeneralChatMode ? "/api/general-chat" : "/api/chat";
+        
         // Send message to backend
-        const response = await fetch("/chat", {
+        const response = await fetch(endpoint, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -94,9 +163,32 @@ async function sendMessage() {
         
         const data = await response.json();
         
+        // Update conversation ID if provided
+        if (data.conversation_id) {
+            currentConversationId = data.conversation_id;
+        }
+        
         // Remove "Thinking..." message and show AI response
         removeLastMessage();
-        addMessage("Assistant", data.reply);  // Updated to match our FastAPI response format
+        addMessage("Assistant", data.reply);
+        
+        // Check if the message was about reminders and reload reminders
+        if (!isGeneralChatMode && 
+            (userMessage.toLowerCase().includes("remind") || 
+             userMessage.toLowerCase().includes("reminder") ||
+             data.reply.includes("Reminder added") ||
+             data.reply.includes("reminder") ||
+             data.reply.includes("✅"))) {
+            
+            // Reload reminders and upcoming reminders
+            if (typeof loadReminders === 'function') {
+                loadReminders();
+            }
+            
+            if (typeof loadUpcomingReminders === 'function') {
+                loadUpcomingReminders();
+            }
+        }
     } catch (error) {
         console.error("Error:", error);
         removeLastMessage();
@@ -153,7 +245,7 @@ async function loadReminders() {
         queryParams.append("completed", showCompleted);
         
         // Fetch reminders from the API
-        const response = await fetch(`/reminders?${queryParams.toString()}`);
+        const response = await fetch(`/api/reminders?${queryParams.toString()}`);
         
         if (!response.ok) {
             throw new Error("Failed to load reminders");
@@ -218,7 +310,7 @@ async function loadUpcomingReminders() {
         const upcomingList = document.getElementById("upcoming-list");
         if (!upcomingList) return;
         
-        const response = await fetch("/reminders/upcoming");
+        const response = await fetch("/api/reminders/upcoming");
         
         if (!response.ok) {
             throw new Error("Failed to load upcoming reminders");
@@ -262,15 +354,24 @@ async function loadConversations() {
         const conversationList = document.getElementById("conversation-list");
         if (!conversationList) return;
         
-        // This would typically fetch from an API endpoint that lists conversations
-        // For now, we'll just use the current conversation if it exists
+        // If we have a conversation ID, try to fetch its details
         if (currentConversationId) {
-            const conversationElement = document.createElement("div");
-            conversationElement.className = "conversation-item active";
-            conversationElement.innerHTML = `
-                <span>Conversation ${currentConversationId.substring(0, 8)}...</span>
-            `;
-            conversationList.appendChild(conversationElement);
+            try {
+                const response = await fetch(`/api/conversations/${currentConversationId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    const conversationElement = document.createElement("div");
+                    conversationElement.className = "conversation-item active";
+                    conversationElement.innerHTML = `
+                        <span>Conversation ${currentConversationId.substring(0, 8)}...</span>
+                    `;
+                    conversationList.appendChild(conversationElement);
+                }
+            } catch (error) {
+                console.error("Error fetching conversation:", error);
+            }
         }
     } catch (error) {
         console.error("Error loading conversations:", error);
@@ -280,7 +381,7 @@ async function loadConversations() {
 // Function to complete a reminder
 async function completeReminder(id) {
     try {
-        const response = await fetch(`/reminder/${id}/complete`, {
+        const response = await fetch(`/api/reminder/${id}/complete`, {
             method: "POST"
         });
         
@@ -298,7 +399,7 @@ async function completeReminder(id) {
 // Function to delete a reminder
 async function deleteReminder(id) {
     try {
-        const response = await fetch(`/reminder/${id}`, {
+        const response = await fetch(`/api/reminder/${id}`, {
             method: "DELETE"
         });
         
