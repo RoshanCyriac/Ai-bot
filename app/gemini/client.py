@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from typing import Dict, Any, List, Optional, Tuple
+from dotenv import load_dotenv
 
 import google.generativeai as genai
 
@@ -14,11 +15,14 @@ from app.services import (
     get_upcoming_reminders
 )
 
+# Load environment variables from .env file
+load_dotenv()
+
 # Configure logger
 logger = logging.getLogger("reminder-ai.gemini")
 
 # Set up Google Gemini AI
-API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyC2i3QlrRobzcf3y2WHjTsCoaJe2cAqJB0")
+API_KEY = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=API_KEY)
 
 # System prompt for Gemini

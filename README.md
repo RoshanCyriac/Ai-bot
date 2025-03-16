@@ -43,7 +43,10 @@ The application uses:
 
 1. Clone the repository
 2. Install dependencies: `pip install -r requirements.txt`
-3. Set your Gemini API key as an environment variable: `export GEMINI_API_KEY=your_api_key`
+3. Create a `.env` file in the root directory with your Gemini API key:
+   ```
+   GEMINI_API_KEY=your_api_key
+   ```
 4. Run the application: `python app.py`
 5. Access the web interface at `http://localhost:8000`
 

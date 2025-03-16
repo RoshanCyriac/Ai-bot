@@ -2,14 +2,18 @@ import json
 import logging
 import os
 from typing import Dict, Any, List, Optional
+from dotenv import load_dotenv
 
 import google.generativeai as genai
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logger
 logger = logging.getLogger("reminder-ai.gemini.general")
 
 # Set up Google Gemini AI (reusing the same API key)
-API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyC2i3QlrRobzcf3y2WHjTsCoaJe2cAqJB0")
+API_KEY = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=API_KEY)
 
 # System prompt for general chat
