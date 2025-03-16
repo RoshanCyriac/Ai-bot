@@ -1,0 +1,17 @@
+import sqlite3
+
+# Initialize Database
+def init_db():
+    conn = sqlite3.connect("reminders.db")
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS reminders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_message TEXT,
+            date TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()  # Run this once to create the database
