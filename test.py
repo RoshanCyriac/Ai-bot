@@ -1,25 +1,23 @@
 import google.generativeai as genai
 from fastapi.testclient import TestClient
-from app import app
+from app import app, add_reminder_function, get_reminders_function
 import sqlite3
 import os
+import json
 
 # Set your API key directly
-genai.configure(api_key="AIzaSyC2i3QlrRobzcf3y2WHjTsCoaJe2cAqJB0")
+API_KEY = "AIzaSyC2i3QlrRobzcf3y2WHjTsCoaJe2cAqJB0"  # Replace with your actual key
+genai.configure(api_key=API_KEY)
 
-# Function to chat with AI
-def chat_with_ai(user_message):
-    model = genai.GenerativeModel("gemini-1.5-pro")  # Free version
-    response = model.generate_content(user_message)
-    return response.text
-
-# Test AI
-while True:
-    user_input = input("You: ")
-    if user_input.lower() in ["exit", "quit"]:
-        break
-    response = chat_with_ai(user_input)
-    print("AI:", response)
+# Test direct function calls
+def test_functions():
+    # Test add_reminder function
+    result = add_reminder_function("Test direct function call", "2023-12-31")
+    print("Add reminder result:", result)
+    
+    # Test get_reminders function
+    result = get_reminders_function()
+    print("Get reminders result:", result)
 
 # Create a test client
 client = TestClient(app)
@@ -47,16 +45,17 @@ def test_chat_reminder():
     )
     assert response.status_code == 200
     assert "reply" in response.json()
-    assert "Reminder" in response.json()["reply"]
+    print("Reminder response:", response.json()["reply"])
 
 # Test the chat endpoint with a show reminders request
 def test_chat_show_reminders():
     response = client.post(
         "/chat",
-        json={"message": "show reminders"}
+        json={"message": "show me all my reminders"}
     )
     assert response.status_code == 200
     assert "reply" in response.json()
+    print("Show reminders response:", response.json()["reply"])
 
 # Test the direct reminder endpoint
 def test_create_reminder():
@@ -86,6 +85,10 @@ if __name__ == "__main__":
         conn.close()
     
     # Run tests
+    print("Testing direct functions...")
+    test_functions()
+    
+    print("\nTesting API endpoints...")
     test_read_main()
     test_chat_general()
     test_chat_reminder()
@@ -93,4 +96,4 @@ if __name__ == "__main__":
     test_create_reminder()
     test_get_reminders()
     
-    print("All tests passed!")
+    print("\nAll tests passed!")

@@ -1,13 +1,28 @@
-# AI Reminder Assistant
+# AI Reminder Assistant with Function Calling
 
-A FastAPI application that uses Google's Gemini AI to provide a chat interface with reminder functionality.
+A FastAPI application that uses Google's Gemini AI with function calling capabilities to provide a chat interface with reminder functionality.
 
 ## Features
 
 - Chat with Google's Gemini AI model
 - Set reminders using natural language
 - View all reminders
+- Uses Gemini's function calling to intelligently handle reminder operations
 - Modern, responsive UI
+
+## How Function Calling Works
+
+This application uses Gemini's function calling capabilities to:
+
+1. Define tools (functions) that the AI can use
+2. Let the AI decide when to call these functions based on user intent
+3. Execute the appropriate function when the AI determines it's needed
+4. Return the function's result to the user
+
+This approach is more flexible than keyword matching because:
+- The AI understands user intent more naturally
+- Users can phrase their requests in many different ways
+- The AI extracts the necessary parameters from natural language
 
 ## Requirements
 
@@ -33,7 +48,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 3. Install the required packages:
 ```bash
-pip install fastapi uvicorn google-generativeai jinja2 python-multipart
+pip install -r requirements.txt
 ```
 
 4. Set up your Google Gemini API key:
@@ -49,42 +64,3 @@ uvicorn app:app --reload
 
 2. Open your browser and navigate to:
 ```
-http://127.0.0.1:8000
-```
-
-## Usage
-
-- **Chat with AI**: Type any message and press Enter or click Send
-- **Set a Reminder**: Type a message containing "remind me" and a date (e.g., "Remind me to call mom on April 15")
-- **View Reminders**: Type "show reminders" or click the "Show All Reminders" button
-
-## API Endpoints
-
-- `GET /`: Main web interface
-- `POST /chat`: Send a message to the AI
-- `POST /reminder`: Create a reminder directly
-- `GET /reminders`: Get all reminders
-
-## Testing
-
-Run the tests with:
-```bash
-python test.py
-```
-
-## Project Structure
-
-- `app.py`: Main FastAPI application
-- `templates/`: HTML templates
-- `static/`: CSS and JavaScript files
-- `reminders.db`: SQLite database for storing reminders
-- `test.py`: Test suite
-
-## License
-
-MIT
-
-## Acknowledgements
-
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [Google Generative AI](https://ai.google.dev/) 
