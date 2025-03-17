@@ -55,17 +55,21 @@ async def process_general_chat(user_message: str, conversation_history: Optional
         # Prepare conversation context
         messages = []
         
-        # Create the conversation
+        # Add system prompt first
+        messages.append({"role": "user", "parts": [GENERAL_SYSTEM_PROMPT]})
+        messages.append({"role": "model", "parts": ["I understand. I'll help with general questions and conversations."]})
+        
+        # Add conversation history if available
         if conversation_history:
+            logger.info(f"Including conversation history with {len(conversation_history)} messages")
             for msg in conversation_history:
                 role = "user" if msg["role"] == "user" else "model"
                 messages.append({"role": role, "parts": [msg["content"]]})
         
-        # Add current user message with system prompt
-        messages = [
-            {"role": "user", "parts": [f"{GENERAL_SYSTEM_PROMPT}\n\nUser message: {user_message}"]}
-        ]
+        # Add current user message
+        messages.append({"role": "user", "parts": [user_message]})
         
+        logger.info(f"Sending general chat message with {len(messages)} context messages")
         logger.info("Sending general chat request to Gemini...")
         
         # Generate response without tools

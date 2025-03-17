@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-from app.database import get_db_connection
+from app.database.connection import get_conversations_db_connection
 
 # Configure logger
 logger = logging.getLogger("reminder-ai.services")
@@ -24,7 +24,7 @@ async def save_conversation(conversation_id: Optional[str], user_message: str, a
         if not conversation_id:
             conversation_id = str(uuid.uuid4())
         
-        conn = get_db_connection()
+        conn = get_conversations_db_connection()
         cursor = conn.cursor()
         
         # Check if conversation exists
@@ -79,7 +79,7 @@ async def get_conversation_history(conversation_id: str) -> List[Dict[str, Any]]
         A list of message dictionaries
     """
     try:
-        conn = get_db_connection()
+        conn = get_conversations_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT messages FROM conversations WHERE id = ?", (conversation_id,))
         result = cursor.fetchone()

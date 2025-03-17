@@ -5,18 +5,35 @@ from sqlite3 import Connection, Row
 # Configure logger
 logger = logging.getLogger("reminder-ai.database")
 
-# Database file path
-DB_FILE = "reminders.db"
+# Database file paths
+REMINDERS_DB_FILE = "reminders.db"
+CONVERSATIONS_DB_FILE = "database.db"
 
-def get_db_connection() -> Connection:
-    """Get a connection to the SQLite database with row factory"""
-    conn = sqlite3.connect(DB_FILE)
+def get_db_connection(db_file=REMINDERS_DB_FILE) -> Connection:
+    """Get a connection to the SQLite database with row factory
+    
+    Args:
+        db_file: The database file to connect to
+        
+    Returns:
+        A database connection
+    """
+    conn = sqlite3.connect(db_file)
     conn.row_factory = sqlite3.Row
     return conn
+
+def get_conversations_db_connection() -> Connection:
+    """Get a connection to the conversations database
+    
+    Returns:
+        A database connection to the conversations database
+    """
+    return get_db_connection(CONVERSATIONS_DB_FILE)
 
 def init_db() -> None:
     """Initialize the database with required tables"""
     try:
+        # Initialize reminders database
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -24,13 +41,20 @@ def init_db() -> None:
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS reminders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_message TEXT NOT NULL,
+                message TEXT NOT NULL,
                 date TEXT NOT NULL,
                 priority TEXT DEFAULT 'normal',
                 tags TEXT DEFAULT '[]',
                 completed BOOLEAN DEFAULT 0
             )
         ''')
+        
+        conn.commit()
+        conn.close()
+        
+        # Initialize conversations database
+        conn = get_conversations_db_connection()
+        cursor = conn.cursor()
         
         # Create conversation history table
         cursor.execute('''
@@ -44,7 +68,7 @@ def init_db() -> None:
         
         conn.commit()
         conn.close()
-        logger.info("Database initialized")
+        logger.info("Databases initialized")
     except Exception as e:
         logger.error(f"Error initializing database: {str(e)}")
 

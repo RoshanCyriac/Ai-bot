@@ -69,16 +69,21 @@ async def process_with_gemini(user_message: str, conversation_history: Optional[
         # Prepare conversation context
         messages = []
         
-        # Create the conversation
+        # Add system prompt first
+        messages.append({"role": "user", "parts": [SYSTEM_PROMPT]})
+        messages.append({"role": "model", "parts": ["I understand. I'll help with reminders and tasks."]})
+        
+        # Add conversation history if available
         if conversation_history:
+            logger.info(f"Including conversation history with {len(conversation_history)} messages")
             for msg in conversation_history:
                 role = "user" if msg["role"] == "user" else "model"
                 messages.append({"role": role, "parts": [msg["content"]]})
         
-        # Add current user message with system prompt
-        messages = [
-            {"role": "user", "parts": [f"{SYSTEM_PROMPT}\n\nUser message: {user_message}"]}
-        ]
+        # Add current user message
+        messages.append({"role": "user", "parts": [user_message]})
+        
+        logger.info(f"Sending message with {len(messages)} context messages")
         
         # First try without tools to see if we can extract function call from text
         logger.info("Trying without tools first to extract function call from text...")

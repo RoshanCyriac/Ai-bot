@@ -1,7 +1,6 @@
 // Global variables
 let currentConversationId = null;
 let reminders = [];
-let isGeneralChatMode = false;
 
 // Initialize the application
 document.addEventListener("DOMContentLoaded", function() {
@@ -27,11 +26,6 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById("new-chat-btn").addEventListener("click", startNewChat);
     }
     
-    // Chat mode toggle
-    if (document.getElementById("chat-mode-toggle")) {
-        document.getElementById("chat-mode-toggle").addEventListener("change", toggleChatMode);
-    }
-    
     // Load initial data
     if (typeof loadUpcomingReminders === 'function') {
         loadUpcomingReminders();
@@ -49,79 +43,21 @@ document.addEventListener("DOMContentLoaded", function() {
     startNewChat();
 });
 
-// Toggle between reminder mode and general chat mode
-function toggleChatMode() {
-    isGeneralChatMode = document.getElementById("chat-mode-toggle").checked;
-    const modeLabel = document.getElementById("chat-mode-label");
-    
-    if (isGeneralChatMode) {
-        modeLabel.textContent = "General Chat Mode";
-        document.getElementById("chatbox").innerHTML = `
-            <div class="message bot">
-                <strong>Assistant:</strong> You're now in general chat mode. I can help with a wide range of topics, answer questions, or just chat. What would you like to talk about?
-            </div>
-        `;
-    } else {
-        modeLabel.textContent = "Reminder Mode";
-        document.getElementById("chatbox").innerHTML = `
-            <div class="message bot">
-                <strong>Assistant:</strong> You're now in reminder mode. I can help you manage reminders and tasks. Try saying:
-                <ul>
-                    <li>"Remind me to call mom tomorrow"</li>
-                    <li>"I need to submit my report by Friday"</li>
-                    <li>"Show me all my reminders"</li>
-                    <li>"What do I have scheduled for today?"</li>
-                </ul>
-            </div>
-        `;
-        
-        // Reload reminders when switching to reminder mode
-        if (typeof loadReminders === 'function') {
-            loadReminders();
-        }
-        
-        if (typeof loadUpcomingReminders === 'function') {
-            loadUpcomingReminders();
-        }
-    }
-    
-    // Reset conversation ID when switching modes
-    currentConversationId = null;
-    document.getElementById("user-input").focus();
-}
-
 // Chat functions
 function startNewChat() {
     currentConversationId = null;
     
-    if (isGeneralChatMode) {
-        document.getElementById("chatbox").innerHTML = `
-            <div class="message bot">
-                <strong>Assistant:</strong> You're in general chat mode. I can help with a wide range of topics, answer questions, or just chat. What would you like to talk about?
-            </div>
-        `;
-    } else {
-        document.getElementById("chatbox").innerHTML = `
-            <div class="message bot">
-                <strong>Assistant:</strong> Hello! I'm your advanced AI assistant. I can help you manage reminders and tasks. Try saying:
-                <ul>
-                    <li>"Remind me to call mom tomorrow"</li>
-                    <li>"I need to submit my report by Friday"</li>
-                    <li>"Show me all my reminders"</li>
-                    <li>"What do I have scheduled for today?"</li>
-                </ul>
-            </div>
-        `;
-        
-        // Reload reminders when in reminder mode
-        if (typeof loadReminders === 'function') {
-            loadReminders();
-        }
-        
-        if (typeof loadUpcomingReminders === 'function') {
-            loadUpcomingReminders();
-        }
-    }
+    document.getElementById("chatbox").innerHTML = `
+        <div class="message bot">
+            <strong>Assistant:</strong> Hello! I'm your advanced AI assistant. I can help with both reminders and general questions. Try saying:
+            <ul>
+                <li>"Remind me to call mom tomorrow"</li>
+                <li>"What's the capital of France?"</li>
+                <li>"Show me all my reminders"</li>
+                <li>"Tell me a joke"</li>
+            </ul>
+        </div>
+    `;
     
     document.getElementById("user-input").focus();
 }
@@ -134,7 +70,6 @@ async function sendMessage() {
     
     // Display user message
     addMessage("You", userMessage);
-    
     // Clear input field
     inputField.value = "";
     
@@ -142,11 +77,8 @@ async function sendMessage() {
     const loadingId = addMessage("Assistant", "Thinking...");
     
     try {
-        // Determine which endpoint to use based on chat mode
-        const endpoint = isGeneralChatMode ? "/api/general-chat" : "/api/chat";
-        
         // Send message to backend
-        const response = await fetch(endpoint, {
+        const response = await fetch("/api/chat", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -166,6 +98,9 @@ async function sendMessage() {
         // Update conversation ID if provided
         if (data.conversation_id) {
             currentConversationId = data.conversation_id;
+            
+            // Update UI to show we're in a conversation
+            updateConversationUI();
         }
         
         // Remove "Thinking..." message and show AI response
@@ -173,12 +108,11 @@ async function sendMessage() {
         addMessage("Assistant", data.reply);
         
         // Check if the message was about reminders and reload reminders
-        if (!isGeneralChatMode && 
-            (userMessage.toLowerCase().includes("remind") || 
-             userMessage.toLowerCase().includes("reminder") ||
-             data.reply.includes("Reminder added") ||
-             data.reply.includes("reminder") ||
-             data.reply.includes("✅"))) {
+        if (userMessage.toLowerCase().includes("remind") || 
+            userMessage.toLowerCase().includes("reminder") ||
+            data.reply.includes("Reminder added") ||
+            data.reply.includes("reminder") ||
+            data.reply.includes("✅")) {
             
             // Reload reminders and upcoming reminders
             if (typeof loadReminders === 'function') {
@@ -196,6 +130,23 @@ async function sendMessage() {
     }
 }
 
+// Update UI to show we're in a conversation
+function updateConversationUI() {
+    // Add active conversation indicator if needed
+    if (currentConversationId && document.querySelector('.conversation-indicator') === null) {
+        const chatHeader = document.querySelector('.chat-header');
+        if (chatHeader) {
+            const indicator = document.createElement('div');
+            indicator.className = 'conversation-indicator';
+            indicator.innerHTML = `<span>Ongoing conversation</span>`;
+            chatHeader.appendChild(indicator);
+        }
+    }
+    
+    // Update conversation list
+    loadConversations();
+}
+
 function addMessage(sender, message) {
     let chatbox = document.getElementById("chatbox");
     let messageDiv = document.createElement("div");
@@ -205,6 +156,8 @@ function addMessage(sender, message) {
 
     // Auto-scroll to latest message
     chatbox.scrollTop = chatbox.scrollHeight;
+    
+    return messageDiv;
 }
 
 function removeLastMessage() {
@@ -361,6 +314,9 @@ async function loadConversations() {
                 
                 if (response.ok) {
                     const data = await response.json();
+                    
+                    // Clear existing conversations
+                    conversationList.innerHTML = "";
                     
                     const conversationElement = document.createElement("div");
                     conversationElement.className = "conversation-item active";
