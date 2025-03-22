@@ -1,6 +1,6 @@
 # Advanced AI Reminder Assistant
 
-A powerful AI assistant that helps you manage reminders and now supports general chat functionality.
+An intelligent AI-powered assistant that helps you manage reminders while also providing a seamless, ongoing chat experience.
 
 ## Features
 
